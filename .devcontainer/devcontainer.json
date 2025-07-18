@@ -45,9 +45,11 @@
     "NODE_OPTIONS": "--max-old-space-size=4096",
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
     "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
-    "TZ": "${localEnv:TZ:Europe/Berlin}"
+    "TZ": "${localEnv:TZ:Europe/Berlin}",
+    "PERPLEXITY_API_KEY": "${localEnv:PERPLEXITY_API_KEY}",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
-  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh"
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && /usr/local/bin/init-mcp.sh"
 }

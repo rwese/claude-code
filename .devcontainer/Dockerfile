@@ -125,13 +125,15 @@ RUN mkdir -p /var/log/squid /var/spool/squid /etc/squid/errors/custom && \
   echo "denied" > /etc/squid/errors/custom/ERR_ACCESS_DENIED && \
   chown proxy:proxy /etc/squid/errors/custom/ERR_ACCESS_DENIED
 
-# Copy and set up firewall scripts
+# Copy and set up firewall scripts and MCP initialization
 COPY init-firewall.sh /usr/local/bin/
 COPY init-firewall-proxy.sh /usr/local/bin/
 COPY setup-proxy-env.sh /usr/local/bin/
+COPY init-mcp.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init-firewall.sh && \
   chmod +x /usr/local/bin/init-firewall-proxy.sh && \
   chmod +x /usr/local/bin/setup-proxy-env.sh && \
+  chmod +x /usr/local/bin/init-mcp.sh && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall-proxy.sh" >> /etc/sudoers.d/node-firewall && \
   echo "node ALL=(root) NOPASSWD: /usr/sbin/squid" > /etc/sudoers.d/node-squid && \
@@ -144,8 +146,13 @@ RUN chmod +x /usr/local/bin/init-firewall.sh && \
 RUN npm install -g @anthropic-ai/claude-code
 RUN chown -R node /home/node
 
+USER root
+
+# Fix permissions for npm global directory
+RUN chown -R node:node /usr/local/share/npm-global
+
 USER node
 
-RUN claude mcp add -s local playwright -- npx -y @playwright/mcp@latest && \
-    claude mcp add -s local context7 -- npx -y @upstash/context7-mcp 
+# Install MCP server packages (without configuring them yet)
+RUN npm install -g @playwright/mcp@latest @upstash/context7-mcp server-perplexity-ask 
 
