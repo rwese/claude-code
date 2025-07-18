@@ -8,7 +8,14 @@
   },
   "runArgs": [
     "--cap-add=NET_ADMIN",
-    "--cap-add=NET_RAW"
+    "--cap-add=NET_RAW",
+    "--label=devcontainer.project=claude-code",
+    "--label=devcontainer.workspace=${localWorkspaceFolderBasename}",
+    "--label=devcontainer.type=development",
+    "--label=devcontainer.services=mcp-playwright,mcp-context7,firewall,proxy",
+    "--label=devcontainer.description=Claude Code development environment with MCP services",
+    "--label=maintainer=claude-code-team",
+    "--name=claude-code-devcontainer-${devcontainerId}"
   ],
   "customizations": {
     "vscode": {

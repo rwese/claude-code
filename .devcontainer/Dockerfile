@@ -3,6 +3,17 @@ FROM node:20
 ARG TZ
 ENV TZ="$TZ"
 
+# Add metadata labels for better container identification
+LABEL devcontainer.project="claude-code"
+LABEL devcontainer.type="development"
+LABEL devcontainer.services="mcp-playwright,mcp-context7,firewall,proxy"
+LABEL devcontainer.description="Claude Code development environment with MCP services"
+LABEL devcontainer.base-image="node:20"
+LABEL maintainer="claude-code-team"
+LABEL org.opencontainers.image.title="Claude Code DevContainer"
+LABEL org.opencontainers.image.description="Development environment for Claude Code with MCP services"
+LABEL org.opencontainers.image.vendor="Anthropic"
+
 # Install basic development tools, iptables/ipset, and Puppeteer dependencies
 RUN apt update && apt install -y less \
   git \
