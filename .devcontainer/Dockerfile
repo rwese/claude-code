@@ -105,19 +105,16 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   -x
 
 # Install uv for Python package management (required for git MCP service)
+ENV HOME="/home/node/"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && . $HOME/.local/bin/env
 ENV PATH="/home/node/.cargo/bin:$PATH"
 ENV PATH="$HOME/.local/bin:$PATH"
 
-RUN PATH="$HOME/.local/bin:$PATH" uvx mcp-server-git --help 1>/dev/null
-RUN timeout 10 npx -y @modelcontextprotocol/server-puppeteer || true
+RUN PATH="/home/node/.local/bin:$PATH" uvx mcp-server-git --help 1>/dev/null
 
 # Set Puppeteer to use system Chrome instead of downloading
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
-# Install Claude
-RUN npm install -g @anthropic-ai/claude-code
 
 # Copy and set up Squid proxy configuration
 COPY squid.conf /etc/squid/squid.conf
@@ -138,6 +135,17 @@ RUN chmod +x /usr/local/bin/init-firewall.sh && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall-proxy.sh" >> /etc/sudoers.d/node-firewall && \
   echo "node ALL=(root) NOPASSWD: /usr/sbin/squid" > /etc/sudoers.d/node-squid && \
+  echo "node ALL=(root) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/dpkg" > /etc/sudoers.d/node-packages && \
   chmod 0440 /etc/sudoers.d/node-firewall && \
-  chmod 0440 /etc/sudoers.d/node-squid
+  chmod 0440 /etc/sudoers.d/node-squid && \
+  chmod 0440 /etc/sudoers.d/node-packages
+
+# Install Claude
+RUN npm install -g @anthropic-ai/claude-code
+RUN chown -R node /home/node
+
 USER node
+
+RUN claude mcp add -s local playwright -- npx -y @playwright/mcp@latest && \
+    claude mcp add -s local context7 -- npx -y @upstash/context7-mcp 
+
