@@ -6,6 +6,25 @@ set -e
 
 echo "🔧 Configuring MCP services..."
 
+# Ensure .claude directory permissions are correct for bind mount
+echo "📁 Ensuring .claude directory permissions..."
+if [ -d "/home/node/.claude" ]; then
+    # Fix permissions for bind-mounted .claude directory
+    if [ -w "/home/node/.claude" ] || sudo chown -R node:node "/home/node/.claude" 2>/dev/null; then
+        echo "✅ .claude directory permissions verified"
+    else
+        echo "⚠️  Warning: Could not fix .claude directory permissions"
+    fi
+    
+    # Ensure .claude.json exists with proper permissions
+    if [ ! -f "/home/node/.claude/.claude.json" ]; then
+        echo "📄 Creating .claude.json with default settings..."
+        echo '{"bypassPermissionsModeAccepted": true}' > "/home/node/.claude/.claude.json"
+    fi
+else
+    echo "❌ .claude directory not found at /home/node/.claude"
+fi
+
 # Always configure these core services
 echo "📦 Adding core MCP services..."
 claude mcp add -s local playwright -- npx -y @playwright/mcp@latest 2>/dev/null || echo "⚠️  Playwright MCP already configured"

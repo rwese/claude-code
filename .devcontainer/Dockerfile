@@ -68,7 +68,14 @@ RUN apt update && apt install -y less \
   wget \
   xdg-utils \
   chromium \
-  squid
+  squid \
+  locales
+
+# Generate locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 # Ensure default node user has access to /usr/local/share
 RUN mkdir -p /usr/local/share/npm-global && \
@@ -85,9 +92,9 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 # Set `DEVCONTAINER` environment variable to help with orientation
 ENV DEVCONTAINER=true
 
-# Create workspace and config directories and set permissions
-RUN mkdir -p /workspace /home/node/.claude && \
-  chown -R node:node /workspace /home/node/.claude
+# Create workspace directory and set permissions
+RUN mkdir -p /workspace && \
+  chown -R node:node /workspace
 
 WORKDIR /workspace
 
@@ -121,6 +128,30 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && . $HOME/.local/bin/env
 ENV PATH="/home/node/.cargo/bin:$PATH"
 ENV PATH="$HOME/.local/bin:$PATH"
 
+# Install Flutter SDK
+USER root
+RUN apt update && apt install -y \
+  libgtk-3-dev \
+  libblkid-dev \
+  liblzma-dev \
+  clang \
+  cmake \
+  ninja-build \
+  pkg-config \
+  libgtk-3-dev \
+  liblzma-dev \
+  libstdc++-12-dev
+
+# Install Flutter
+ENV FLUTTER_HOME="/opt/flutter"
+ENV PATH="$FLUTTER_HOME/bin:$PATH"
+RUN git clone --depth 1 --branch stable https://github.com/flutter/flutter.git $FLUTTER_HOME && \
+  chown -R node:node $FLUTTER_HOME && \
+  git config --global --add safe.directory $FLUTTER_HOME && \
+  sudo -u node git config --global --add safe.directory $FLUTTER_HOME
+
+USER node
+
 RUN PATH="/home/node/.local/bin:$PATH" uvx mcp-server-git --help 1>/dev/null
 
 # Set Puppeteer to use system Chrome instead of downloading
@@ -141,17 +172,37 @@ COPY init-firewall.sh /usr/local/bin/
 COPY init-firewall-proxy.sh /usr/local/bin/
 COPY setup-proxy-env.sh /usr/local/bin/
 COPY init-mcp.sh /usr/local/bin/
+
+# Copy browser launcher and debugging scripts
+COPY safe-browser-open.sh /usr/local/bin/safe-browser-open
+COPY setup-ssh-host-access.sh /usr/local/bin/
+COPY debug-tunnel-manager.sh /usr/local/bin/debug-tunnel-manager
+COPY flutter-debug-helper.sh /usr/local/bin/flutter-debug-helper
+COPY security-validation.sh /usr/local/bin/security-validation.sh
+COPY browser-session-manager.sh /usr/local/bin/browser-session-manager
+
+# .claude.json will be created by init-mcp.sh if needed in the bind-mounted directory
 RUN chmod +x /usr/local/bin/init-firewall.sh && \
   chmod +x /usr/local/bin/init-firewall-proxy.sh && \
   chmod +x /usr/local/bin/setup-proxy-env.sh && \
   chmod +x /usr/local/bin/init-mcp.sh && \
+  chmod +x /usr/local/bin/safe-browser-open && \
+  chmod +x /usr/local/bin/setup-ssh-host-access.sh && \
+  chmod +x /usr/local/bin/debug-tunnel-manager && \
+  chmod +x /usr/local/bin/flutter-debug-helper && \
+  chmod +x /usr/local/bin/security-validation.sh && \
+  chmod +x /usr/local/bin/browser-session-manager && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall-proxy.sh" >> /etc/sudoers.d/node-firewall && \
+  echo "node ALL=(root) NOPASSWD: /usr/local/bin/safe-browser-open" > /etc/sudoers.d/node-browser && \
   echo "node ALL=(root) NOPASSWD: /usr/sbin/squid" > /etc/sudoers.d/node-squid && \
   echo "node ALL=(root) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/dpkg" > /etc/sudoers.d/node-packages && \
+  echo "node ALL=(root) NOPASSWD: /usr/bin/chown" > /etc/sudoers.d/node-chown && \
   chmod 0440 /etc/sudoers.d/node-firewall && \
+  chmod 0440 /etc/sudoers.d/node-browser && \
   chmod 0440 /etc/sudoers.d/node-squid && \
-  chmod 0440 /etc/sudoers.d/node-packages
+  chmod 0440 /etc/sudoers.d/node-packages && \
+  chmod 0440 /etc/sudoers.d/node-chown
 
 # Install Claude
 RUN npm install -g @anthropic-ai/claude-code

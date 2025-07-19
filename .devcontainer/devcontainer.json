@@ -22,7 +22,9 @@
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
       ],
       "settings": {
         "editor.formatOnSave": true,
@@ -46,7 +48,7 @@
   "remoteUser": "node",
   "mounts": [
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=delegated"
   ],
   "remoteEnv": {
     "NODE_OPTIONS": "--max-old-space-size=4096",
@@ -54,9 +56,11 @@
     "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
     "TZ": "${localEnv:TZ:Europe/Berlin}",
     "PERPLEXITY_API_KEY": "${localEnv:PERPLEXITY_API_KEY}",
-    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+    "FLUTTER_HOME": "/opt/flutter",
+    "PATH": "/opt/flutter/bin:${containerEnv:PATH}"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
-  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && /usr/local/bin/init-mcp.sh"
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && /usr/local/bin/init-mcp.sh && /usr/local/bin/setup-ssh-host-access.sh"
 }
