@@ -6,7 +6,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Configuration
-SECURITY_LOG_FILE="/var/log/devcontainer-security.log"
+SECURITY_LOG_FILE="/tmp/devcontainer-security.log"
 RATE_LIMIT_DIR="/tmp/devcontainer-rate-limits"
 MAX_LOG_SIZE="50M"
 LOG_RETENTION_DAYS="30"
