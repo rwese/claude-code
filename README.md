@@ -20,6 +20,27 @@ npm install -g @anthropic-ai/claude-code
 
 2. Navigate to your project directory and run `claude`.
 
+## AI Agent DevContainer
+
+This repository includes a powerful DevContainer configuration optimized for AI agents. It provides comprehensive tooling for browser automation, API testing, code analysis, and more.
+
+**Features:**
+- 🌐 Secure browser automation with Playwright
+- 🔧 API testing and mocking tools
+- 📊 Database clients for all major systems
+- 🔍 Code analysis and security scanning
+- 🚀 Performance testing frameworks
+- 📝 Documentation generation
+- 🤖 AI/ML integration tools
+
+**Quick Start:**
+```bash
+# Initialize AI agent environment
+/init-agent-devcontainer
+```
+
+See [AIAGENT.md](./AIAGENT.md) for complete documentation.
+
 ## Reporting Bugs
 
 We welcome your feedback. Use the `/bug` command to report issues directly within Claude Code, or file a [GitHub issue](https://github.com/anthropics/claude-code/issues).
